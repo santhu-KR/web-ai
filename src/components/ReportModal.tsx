@@ -28,7 +28,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   if (!isOpen) return null;
 
   const generateMarkdown = () => {
-    return `# Sentinel AI - Web Security & Defensive Vulnerability Report
+    return `# Web Application Penetration Toolkit with AI - Security Audit Report
 
 **Target URL:** ${report.targetUrl}  
 **Method:** ${report.method}  

@@ -17,7 +17,11 @@ import {
   Globe,
   Cpu,
   FileCode,
-  CheckCircle2
+  CheckCircle2,
+  LogOut,
+  LogIn,
+  User,
+  ChevronDown
 } from 'lucide-react';
 import { CyberScene3D } from './components/CyberScene3D';
 import { ScannerProgressBar } from './components/ScannerProgressBar';
@@ -27,6 +31,8 @@ import { FileUploader } from './components/FileUploader';
 import { UrlAuditor } from './components/UrlAuditor';
 import { ControlDock } from './components/ControlDock';
 import { ReportModal } from './components/ReportModal';
+import { AuthModal } from './components/AuthModal';
+import { useAuth } from './context/AuthContext';
 import { SAMPLE_TARGETS } from './data/sampleTargets';
 import { ScanTarget, VulnerabilityFinding, ScanReport, ProjectFile } from './types/security';
 import { analyzeTargetDefensively, analyzeProjectFilesDefensively, SCAN_STAGES } from './services/analyzer';
@@ -120,6 +126,10 @@ export const securityMiddleware = helmet({
 ];
 
 export default function App() {
+  const { user, isAuthenticated, logout, incrementAuditCount } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
   // Audit Mode: Project Files (upload one-by-one or batch) vs Project URL / Git Repo vs Scenarios
   const [auditMode, setAuditMode] = useState<'files' | 'url_repo' | 'scenarios'>('files');
 
@@ -265,6 +275,7 @@ export default function App() {
       setScanProgress(100);
       setMicroTask(`Audit completed! Identified ${report.findings.length} weakness(es). Check the Findings tab for AI remediation.`);
       if (soundEnabled) playProceduralSound('complete');
+      incrementAuditCount();
 
       if (report.findings.length > 0) {
         setTimeout(() => setActiveTab('findings'), 700);
@@ -353,6 +364,7 @@ export default function App() {
       setScanProgress(100);
       setMicroTask(`Live URL audit completed. Identified ${report.findings.length} weakness(es). Check the Findings tab for AI remediation.`);
       if (soundEnabled) playProceduralSound('complete');
+      incrementAuditCount();
 
       if (report.findings.length > 0) {
         setTimeout(() => setActiveTab('findings'), 700);
@@ -411,11 +423,11 @@ export default function App() {
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-black tracking-wider text-white">
-                SENTINEL AI
+              <span className="text-sm font-black tracking-wider text-white uppercase">
+                Web Application Penetration Toolkit with AI
               </span>
               <span className="text-[10px] font-mono bg-cyan-950/80 text-cyan-400 border border-cyan-800/80 px-2 py-0.5 rounded font-bold">
-                PROJECT CODE AUDITOR
+                AUDITOR & DEFENSE
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">
@@ -470,6 +482,68 @@ export default function App() {
             >
               <FileCheck className="w-4 h-4" />
               <span>Score: {latestReport.overallScore}/100</span>
+            </button>
+          )}
+
+          {/* User Profile / Login & Logout Component */}
+          {isAuthenticated && user ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 py-1.5 px-2.5 rounded-lg text-xs transition-colors"
+              >
+                <div className="w-6 h-6 rounded-full bg-cyan-900 border border-cyan-500/50 flex items-center justify-center text-cyan-300 font-bold text-[11px] overflow-hidden">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="text-left hidden md:block">
+                  <div className="font-semibold text-white leading-tight truncate max-w-[110px]">{user.name}</div>
+                  <div className="text-[9px] text-cyan-400 leading-none truncate max-w-[110px]">{user.role}</div>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {/* User Dropdown Menu */}
+              {showUserMenu && (
+                <div className="absolute right-0 top-full mt-1.5 w-60 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-3 z-50 text-xs">
+                  <div className="pb-2.5 mb-2.5 border-b border-slate-800">
+                    <div className="font-bold text-white truncate">{user.name}</div>
+                    <div className="text-slate-400 font-mono text-[11px] truncate">{user.email}</div>
+                    <div className="inline-block mt-1.5 px-2 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded text-[10px] font-semibold">
+                      {user.role}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-slate-300 pb-2.5 mb-2.5 border-b border-slate-800">
+                    <div className="flex justify-between py-0.5 text-[11px]">
+                      <span className="text-slate-400">Total Audits Run:</span>
+                      <span className="font-mono font-bold text-cyan-400">{user.totalAuditsRun}</span>
+                    </div>
+                    <div className="flex justify-between py-0.5 text-[11px]">
+                      <span className="text-slate-400">Auditor Status:</span>
+                      <span className="font-bold text-emerald-400">Verified</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      logout();
+                      setShowUserMenu(false);
+                    }}
+                    className="w-full flex items-center justify-center space-x-1.5 py-1.5 px-3 bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-800/80 rounded-lg text-xs font-semibold transition-colors"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-lg transition-colors"
+            >
+              <LogIn className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Sign In / Login</span>
             </button>
           )}
         </div>
@@ -711,6 +785,12 @@ export default function App() {
           onClose={() => setShowReportModal(false)}
         />
       )}
+
+      {/* 6. Security Auditor Login / Register Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 }

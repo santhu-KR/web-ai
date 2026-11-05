@@ -192,7 +192,7 @@ export const UrlAuditor: React.FC<UrlAuditorProps> = ({
       {activeSubMode === 'live' && (
         <div className="space-y-4">
           <p className="text-xs text-slate-300">
-            Enter a live web application URL or API endpoint. Sentinel AI will passively audit the target's transport protocol, Content-Security-Policy, HSTS enforcement, Clickjacking defenses, and query token risks.
+            Enter a live web application URL or API endpoint. The toolkit will passively audit the target's transport protocol, Content-Security-Policy, HSTS enforcement, Clickjacking defenses, and query token risks.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-2">
