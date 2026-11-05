@@ -1,0 +1,6 @@
+{
+  "name": "Sentinel AI - Web Security & Vulnerability Auditor",
+  "description": "Interactive web security analyzer and defensive code auditor featuring AI-driven vulnerability explanations, real-time scanning progress visualization, and 3D cyber defense topology.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
